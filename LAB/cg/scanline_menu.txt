@@ -1,0 +1,153 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<glut.h>
+int n,a,b,id;
+float v[100][2];
+void menu(int);
+void submenu(int);
+void submenu1(int);
+void edgedetect(float x1, float y1, float x2, float y2, int *le, int *re)
+{
+	int counter = 0;
+	int dy, dx, i, tempx, temp;
+	float mx, x;
+	if ((y2 - y1)<0)
+	{
+		temp = y1;
+		y1 = y2;
+		y2 = temp;
+		temp = x1;
+		x1 = x2;
+		x2 = temp;
+	}
+	if ((y2 - y1) != 0)
+		mx = (x2 - x1) / (y2 - y1);
+	else
+		mx = x2 - x1;
+	x = x1;
+	for (i = y1; i <= y2; i++)
+	{
+		if (x<(float)le[i])
+			le[i] = (int)x;
+		if (x>(float)re[i])
+			re[i] = (int)x;
+		x += mx;
+	}
+
+}
+
+void draw_pixel(int x, int y)
+{
+	glBegin(GL_POINTS);
+	glVertex2i(x, y);
+	glEnd();
+	glFlush();
+}
+
+void scanfill(float v[100][2])
+{
+	int le[500], re[500];
+	int i, j;
+	int edge[100][4];
+	for (i = 0; i<500; i++)
+	{
+		le[i] = 500;
+		re[i] = 0;
+	}
+
+
+	for (i = 0; i < n - 1; i++)
+	{
+		edgedetect(v[i][0], v[i][1], v[i + 1][0], v[i + 1][1], le, re);
+		printf("le=%fre=%f", v[i][0], v[i][1]);
+	}
+	edgedetect(v[i][0], v[i][1], v[0][0], v[0][1], le, re);
+
+	for (j = 0; j<500; j++)
+	{
+		if (le[j] <= re[j])
+		for (i = (int)le[j]; i <= (int)re[j]; i++)
+			draw_pixel(i, j);
+	}
+}
+
+void display()
+{
+	//glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glPointSize(1.0);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, 499.0, 0.0, 499.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	//glColor3f(1.0, 0.0, 0.0);
+	glBegin(GL_LINE_LOOP);
+	for (int i = 0; i < n; i++)
+	{
+		glVertex2f(v[i][0], v[i][1]);
+
+	}
+
+	glEnd();
+	scanfill(v);
+	glFlush();
+}
+
+void main(int argc, char **argv)
+{
+	printf("Enter the no of verices of Polygon\n");
+	scanf_s("%d", &n);
+	printf("Enter the verices of Polygon\n");
+	for (int i = 0; i < n; i++)
+		scanf_s("%f%f", &v[i][0], &v[i][1]);
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitWindowPosition(10, 10);
+	glutInitWindowSize(500, 500);
+	glutCreateWindow("Filling a Polygon using Scan-line Algorithm");
+	a = glutCreateMenu(submenu);
+	glutAddMenuEntry("yellow", 1);
+	glutAddMenuEntry("red", 2);
+	b = glutCreateMenu(submenu1);
+	glutAddMenuEntry("blue", 3);
+	glutAddMenuEntry("pink", 4);
+	glutCreateMenu(menu);
+	glutAddSubMenu("Foreground_color", a);
+	glutAddSubMenu("background_color", b);
+	glutAddMenuEntry("quit", 5);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+	glutDisplayFunc(display);
+	glutMainLoop();
+}
+
+void menu(int id)
+{
+	if (id == a)
+		submenu(id);
+	if (id == b)
+		submenu1(id);
+	if (id == 3)
+		exit(0);
+}
+
+void submenu(int id)
+{
+	if (id == 1)
+		glColor3f(1,1,0);
+	if (id == 2)
+		glColor3f(1,0,0);
+	glutPostRedisplay();
+}
+
+void submenu1(int id)
+{
+	if (id == 3)
+		glClearColor(0.6, 0.6, 1, 0);
+	if (id == 4)
+		glClearColor(1, 0.4, 0.6, 0);
+	glutPostRedisplay();
+}
+
+
+
